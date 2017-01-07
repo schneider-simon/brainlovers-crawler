@@ -1,0 +1,84 @@
+<script src="http://brainlovers.com:8080/socket.io/socket.io.js"></script>
+<script src="//code.jquery.com/jquery-1.11.0.min.js"></script>
+
+<script>
+    var socket = io.connect('http://brainlovers.com:8080');
+
+    var playerColor = Math.floor(Math.random()*16777215).toString(16);
+    console.log("welcome player", playerColor);
+
+    socket.on('event', function(data, callback) {
+        console.log("event", data);
+    });
+
+    socket.on('clicked', function(data) {
+        console.log("clicked", data);
+
+        if(!data.x || !data.y) return false;
+
+        var clickCursor = $('<div class="clickCursor"></div>').appendTo('#clicker');
+
+        clickCursor.css({backgroundColor: '#' + data.color});
+        clickCursor.css({top: data.y, left: data.x});
+        clickCursor.attr("data-timestamp", Date.now());
+
+        clickCursor.addClass(data.color);
+
+
+    });
+
+    window.setInterval(function(){
+        $('.clickCursor').each(function(index,elem){
+           var timestamp = parseInt($(elem).attr('data-timestamp'));
+            if(timestamp < Date.now() - 10000)
+                $(elem).remove();
+        });
+    }, 50);
+
+
+    $(document).ready(function(){
+       $("#clicker").click(function(clickData){
+           sendPosition(clickData.offsetX, clickData.offsetY);
+       });
+
+        $( "#clicker" ).mousemove(function( clickData ) {
+            sendPosition(clickData.offsetX, clickData.offsetY);
+        });
+
+        function sendPosition(x,y){
+            var data = {
+                x: x,
+                y: y,
+                color: playerColor
+            };
+
+            if(x && y)  socket.emit('clicked', data);
+        }
+    });
+</script>
+
+<style>
+    #clicker{
+        width: 1000px;
+        height: 700px;
+        background-color: black;
+        margin: 0 auto;
+        cursor: pointer;
+        position: relative;
+        background-image: url(http://lorempixel.com/1000/700/cats/Mushi-draw-2000);
+    }
+
+    .clickCursor{
+        position: absolute;
+        width: 12px;
+        height: 12px;
+        background-color: magenta;
+    }
+
+</style>
+
+<div id="clicker" style="">
+
+
+
+</div>

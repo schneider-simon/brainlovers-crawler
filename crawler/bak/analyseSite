@@ -1,0 +1,55 @@
+function analyseSite(result, $ ){
+    if(stats.pagesFound >= settings.maxPages) return false;
+
+    var host = result.window.location.host;
+    var urlString = result.uri;
+
+    var hoster = hosters.get(host);
+    if(!hoster){
+        console.log(clc.red("HOSTER UNKNOWN " + host));
+        return true;
+    }
+
+    var siteAnalyse = hoster.analyseSite(urlString);
+
+    var siteId = siteAnalyse.siteId;
+    var isLeaf = (siteId != false);
+
+    var consoleOutput = "Analyse site " + result.uri;
+
+
+    var tutorialLinks = hoster.getTutorialLinks($);
+
+    if(isLeaf){
+        consoleOutput += " Leaf: TRUE";
+
+        var tutorial = hoster.analyseTutorial($, result, siteId);
+
+        console.log(clc.blackBright());
+        consoleOutput += " Tutorial found: " + tutorial.title;
+
+        stats.pagesFound++;
+
+        tutorial.save();
+
+        hoster.addPage(siteId, tutorial);
+
+    } else {
+        consoleOutput += " Leaf: TRUE";
+        consoleOutput += " - Links: " + $("a").length + " / " + tutorialLinks.length;
+
+    }
+
+    console.log(clc.blackBright(consoleOutput));
+
+
+    for(var id in tutorialLinks){
+        var tutorialLink = tutorialLinks[id];
+        c.queue(tutorialLink);
+
+    };
+
+
+
+
+}
